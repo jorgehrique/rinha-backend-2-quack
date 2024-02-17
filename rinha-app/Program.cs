@@ -15,7 +15,7 @@ builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>();
 
 var app = builder.Build();
 
-app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao) => {
+app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao, IDatabaseConnection databaseConnection) => {
 
     Console.WriteLine("Id: " + id);
     Console.WriteLine("Transacao: " + transacao);
@@ -23,6 +23,8 @@ app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao) => {
     if(!isTransacaoValid(transacao)){
         return Results.BadRequest();
     }
+
+    databaseConnection.ExecutarTransacao(id, transacao);
 
     return Results.Ok(new TransacaoExecutada(100000, -9098));
 });
@@ -33,7 +35,7 @@ app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnec
 
     // Teste database connection
     databaseConnection.GetAllClientes().ForEachAsync(c => {
-        Console.WriteLine("Cliente: " + c.Limit);
+        Console.WriteLine("Cliente: " + c.Limite);
     });
 
     return Results.Ok(new Extrato(
@@ -52,8 +54,6 @@ bool isTransacaoValid(Transacao transacao){
         && transacao.descricao.Length >= 1 && transacao.descricao.Length <= 10
         && (transacao.tipo != 'c' ||  transacao.tipo != 'd');
 }
-
-record Transacao(int valor, char tipo, string descricao, string? realizada_em);
 
 record TransacaoExecutada(int limite, int saldo);
 

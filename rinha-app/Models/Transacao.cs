@@ -1,0 +1,1 @@
+public record Transacao(int valor, char tipo, string descricao, string? realizada_em);
