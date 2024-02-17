@@ -10,13 +10,6 @@ public class DatabaseConnection : IDatabaseConnection
         return client;
     }
 
-    public IAsyncCursor<Cliente>? GetAllClientes()
-    {
-        var _clientesCollection = GetClient().GetDatabase("database").GetCollection<Cliente>("clientes");
-        var filter = Builders<Cliente>.Filter.Empty;
-        return _clientesCollection.Find(filter).ToCursor();
-    }
-
     public TransacaoSaldo ExecutarTransacao(int id, Transacao transacao)
     {
         var _clientesCollection = GetClient().GetDatabase("database").GetCollection<Cliente>("clientes");
@@ -28,7 +21,7 @@ public class DatabaseConnection : IDatabaseConnection
             throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
         }
 
-        var updateOptions = new FindOneAndUpdateOptions<Cliente> { ReturnDocument = ReturnDocument.Before };
+        var updateOptions = new FindOneAndUpdateOptions<Cliente> { ReturnDocument = ReturnDocument.After };
         Cliente? updated;
 
         if (transacao.tipo.Equals('c'))
@@ -51,6 +44,25 @@ public class DatabaseConnection : IDatabaseConnection
         {
             throw new TransacaoInvalidaException("Saldo Insuficiente: Id=" + id);
         }
+    }
+
+    public Extrato GetExtrato(int id)
+    {
+        var _clientesCollection = GetClient().GetDatabase("database").GetCollection<Cliente>("clientes");
+        var filterId = Builders<Cliente>.Filter.Eq("_id", id); ;
+        var cliente = _clientesCollection.Find(filterId).FirstOrDefault();
+
+        if (cliente == null)
+        {
+            throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
+        }
+
+        return new Extrato(
+            cliente.Saldo,
+            DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
+            cliente.Limite,
+            ["ultima transacao"]
+        );
     }
 
 }

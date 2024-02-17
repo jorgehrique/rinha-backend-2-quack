@@ -1,0 +1,1 @@
+public record Extrato(int total, string data_extrato, int limite, string[]? ultimas_transacoes);

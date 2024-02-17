@@ -1,5 +1,3 @@
-using MongoDB.Driver;
-
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>();
@@ -33,18 +31,21 @@ app.MapPost("/clientes/{id}/transacoes",
     }
 });
 
-app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnection) =>
+app.MapGet("/clientes/{id}/extrato",
+(
+    int id,
+    IDatabaseConnection databaseConnection
+) =>
 {
-
-    Console.WriteLine("Id: " + id);
-
-    // Teste database connection
-    databaseConnection.GetAllClientes().ForEachAsync(c =>
+    try
     {
-        Console.WriteLine("Cliente: " + c.Limite);
-    });
-
-    return Results.Ok();
+        var extrato = databaseConnection.GetExtrato(id);
+        return Results.Ok(extrato);
+    }
+    catch (ClienteNotFoundException exception)
+    {
+        return Results.NotFound(exception.Message);
+    }
 });
 
 app.Run();
