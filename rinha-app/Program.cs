@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -9,6 +10,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(2, ExtratoContext.Default);
     options.SerializerOptions.TypeInfoResolverChain.Insert(3, SaldoExecutadaContext.Default);
 });
+
+builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>();
 
 var app = builder.Build();
 
@@ -24,9 +27,14 @@ app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao) => {
     return Results.Ok(new TransacaoExecutada(100000, -9098));
 });
 
-app.MapGet("/clientes/{id}/extrato", (int id) => {
+app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnection) => {
 
     Console.WriteLine("Id: " + id);
+
+    // Teste database connection
+    databaseConnection.GetAllClientes().ForEachAsync(c => {
+        Console.WriteLine("Cliente: " + c.Limit);
+    });
 
     return Results.Ok(new Extrato(
         new Saldo(-9098, "2024-01-17T02:34:41.217753Z", 100000),
