@@ -18,19 +18,17 @@ public class DatabaseConnection : IDatabaseConnection
         return _clientesCollection.Find(filter).ToCursor();
     }
 
-    public bool ExecutarTransacao(int id, Transacao transacao)
+    public void ExecutarTransacao(int id, Transacao transacao)
     {
         var _clientesCollection = GetClient().GetDatabase("database").GetCollection<Cliente>("clientes");
         var filter = Builders<Cliente>.Filter.Eq("_id", id);
         long count = _clientesCollection.CountDocuments(filter);
 
-        if(count > 0){
-            Console.WriteLine("Existe");
-        } else {
-            Console.WriteLine("Não existe");
+        if(count < 0){
+            throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
         }
 
-        return true;
+        
     }
 
 }

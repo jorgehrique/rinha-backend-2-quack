@@ -5,7 +5,7 @@ var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, TransacaoContext.Default);    
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, TransacaoContext.Default);
     options.SerializerOptions.TypeInfoResolverChain.Insert(1, TransacaoExecutadaContext.Default);
     options.SerializerOptions.TypeInfoResolverChain.Insert(2, ExtratoContext.Default);
     options.SerializerOptions.TypeInfoResolverChain.Insert(3, SaldoExecutadaContext.Default);
@@ -15,26 +15,37 @@ builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>();
 
 var app = builder.Build();
 
-app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao, IDatabaseConnection databaseConnection) => {
+app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao, IDatabaseConnection databaseConnection) =>
+{
 
     Console.WriteLine("Id: " + id);
     Console.WriteLine("Transacao: " + transacao);
 
-    if(!isTransacaoValid(transacao)){
+    if (!isTransacaoValid(transacao))
+    {
         return Results.BadRequest();
     }
 
-    databaseConnection.ExecutarTransacao(id, transacao);
+    try
+    {
+        databaseConnection.ExecutarTransacao(id, transacao);
+    }
+    catch (ClienteNotFoundException exception)
+    {
+        return Results.NotFound(exception.Message);
+    }
 
     return Results.Ok(new TransacaoExecutada(100000, -9098));
 });
 
-app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnection) => {
+app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnection) =>
+{
 
     Console.WriteLine("Id: " + id);
 
     // Teste database connection
-    databaseConnection.GetAllClientes().ForEachAsync(c => {
+    databaseConnection.GetAllClientes().ForEachAsync(c =>
+    {
         Console.WriteLine("Cliente: " + c.Limite);
     });
 
@@ -49,10 +60,11 @@ app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnec
 
 app.Run();
 
-bool isTransacaoValid(Transacao transacao){
+bool isTransacaoValid(Transacao transacao)
+{
     return transacao.valor > 0
         && transacao.descricao.Length >= 1 && transacao.descricao.Length <= 10
-        && (transacao.tipo != 'c' ||  transacao.tipo != 'd');
+        && (transacao.tipo != 'c' || transacao.tipo != 'd');
 }
 
 record TransacaoExecutada(int limite, int saldo);
