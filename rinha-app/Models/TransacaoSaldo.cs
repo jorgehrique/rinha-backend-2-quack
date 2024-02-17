@@ -1,1 +1,1 @@
-public record TransacaoSaldo(int Saldo, int Limite);
+public record TransacaoSaldo(int saldo, int limite);

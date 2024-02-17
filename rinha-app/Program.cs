@@ -53,6 +53,6 @@ app.Run();
 static bool IsTransacaoValid(Transacao transacao)
 {
     return transacao.valor > 0
-        && transacao.descricao.Length >= 1 && transacao.descricao.Length <= 10
+        && transacao.descricao != null && transacao.descricao.Length >= 1 && transacao.descricao.Length <= 10
         && (transacao.tipo == 'c' || transacao.tipo == 'd');
 }

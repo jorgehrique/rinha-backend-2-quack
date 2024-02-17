@@ -58,9 +58,11 @@ public class DatabaseConnection : IDatabaseConnection
         }
 
         return new Extrato(
-            cliente.Saldo,
-            DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
-            cliente.Limite,
+            new Saldo(
+                cliente.Saldo, 
+                DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
+                cliente.Limite
+            ),
             ["ultima transacao"]
         );
     }
