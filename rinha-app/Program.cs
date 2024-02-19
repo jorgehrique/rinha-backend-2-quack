@@ -4,12 +4,7 @@ builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>();
 
 var app = builder.Build();
 
-app.MapPost("/clientes/{id}/transacoes",
-(
-    int id,
-    Transacao transacao,
-    IDatabaseConnection databaseConnection
-) =>
+app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao, IDatabaseConnection databaseConnection) =>
 {
     if (!IsTransacaoValid(transacao))
     {
@@ -31,11 +26,7 @@ app.MapPost("/clientes/{id}/transacoes",
     }
 });
 
-app.MapGet("/clientes/{id}/extrato",
-(
-    int id,
-    IDatabaseConnection databaseConnection
-) =>
+app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnection) =>
 {
     try
     {

@@ -2,17 +2,24 @@ using MongoDB.Driver;
 
 public class DatabaseConnection : IDatabaseConnection
 {
-    private MongoClient? client = null;
+    private readonly IMongoCollection<Cliente> _clientesCollection;
 
-    MongoClient GetClient()
+    public DatabaseConnection()
     {
-        client ??= new MongoClient("mongodb://user:pass@mongo:27017");
-        return client;
+        // nao se faz isso em projeto real kk
+        var settings = MongoClientSettings.FromConnectionString("mongodb://user:pass@mongo:27017"); 
+        
+        // settings.WriteConcern = WriteConcern.Unacknowledged;
+        // settings.MaxConnectionPoolSize = 50;
+        // settings.MinConnectionPoolSize = 25;
+
+        _clientesCollection = new MongoClient(settings)
+            .GetDatabase("database")
+            .GetCollection<Cliente>("clientes");
     }
 
     public TransacaoSaldo ExecutarTransacao(int id, Transacao transacao)
     {
-        var _clientesCollection = GetClient().GetDatabase("database").GetCollection<Cliente>("clientes");
         var filterId = Builders<Cliente>.Filter.Eq("_id", id);
         long count = _clientesCollection.CountDocuments(filterId);
 
@@ -48,7 +55,6 @@ public class DatabaseConnection : IDatabaseConnection
 
     public Extrato GetExtrato(int id)
     {
-        var _clientesCollection = GetClient().GetDatabase("database").GetCollection<Cliente>("clientes");
         var filterId = Builders<Cliente>.Filter.Eq("_id", id); ;
         var cliente = _clientesCollection.Find(filterId).FirstOrDefault();
 
