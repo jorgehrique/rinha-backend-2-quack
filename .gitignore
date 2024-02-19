@@ -135,3 +135,6 @@ _NCrunch*
 Properties/
 
 obj/
+
+rinha-de-backend-2024-q1/**
+gatling/
