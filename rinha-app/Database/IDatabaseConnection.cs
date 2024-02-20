@@ -1,6 +1,6 @@
 
 interface IDatabaseConnection
 {
-    TransacaoSaldo ExecutarTransacao(int id, Transacao transacao);
-    Extrato GetExtrato(int id);
+    Task<TransacaoSaldo> ExecutarTransacao(int id, Transacao transacao);
+    Task<Extrato> GetExtrato(int id);
 }

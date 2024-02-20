@@ -4,7 +4,7 @@ builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>();
 
 var app = builder.Build();
 
-app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao, IDatabaseConnection databaseConnection) =>
+app.MapPost("/clientes/{id}/transacoes", async (int id, Transacao transacao, IDatabaseConnection databaseConnection) =>
 {
     if (!IsTransacaoValid(transacao))
     {
@@ -13,7 +13,7 @@ app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao, IDatabase
 
     try
     {
-        var saldo = databaseConnection.ExecutarTransacao(id, transacao);
+        var saldo = await databaseConnection.ExecutarTransacao(id, transacao);
         return Results.Ok(saldo);
     }
     catch (ClienteNotFoundException exception)
@@ -26,11 +26,11 @@ app.MapPost("/clientes/{id}/transacoes", (int id, Transacao transacao, IDatabase
     }
 });
 
-app.MapGet("/clientes/{id}/extrato", (int id, IDatabaseConnection databaseConnection) =>
+app.MapGet("/clientes/{id}/extrato", async (int id, IDatabaseConnection databaseConnection) =>
 {
     try
     {
-        var extrato = databaseConnection.GetExtrato(id);
+        var extrato = await databaseConnection.GetExtrato(id);
         return Results.Ok(extrato);
     }
     catch (ClienteNotFoundException exception)

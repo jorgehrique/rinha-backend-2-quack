@@ -18,7 +18,7 @@ public class DatabaseConnection : IDatabaseConnection
             .GetCollection<Cliente>("clientes");
     }
 
-    public TransacaoSaldo ExecutarTransacao(int id, Transacao transacao)
+    public Task<TransacaoSaldo> ExecutarTransacao(int id, Transacao transacao)
     {
         var filterId = Builders<Cliente>.Filter.Eq("_id", id);
         long count = _clientesCollection.CountDocuments(filterId);
@@ -45,7 +45,7 @@ public class DatabaseConnection : IDatabaseConnection
 
         if (updated != null)
         {
-            return new TransacaoSaldo(updated.Saldo, updated.Limite);
+            return Task.FromResult(new TransacaoSaldo(updated.Saldo, updated.Limite));
         }
         else
         {
@@ -53,24 +53,22 @@ public class DatabaseConnection : IDatabaseConnection
         }
     }
 
-    public Extrato GetExtrato(int id)
+    public Task<Extrato> GetExtrato(int id)
     {
-        var filterId = Builders<Cliente>.Filter.Eq("_id", id); ;
-        var cliente = _clientesCollection.Find(filterId).FirstOrDefault();
+        var filterId = Builders<Cliente>.Filter.Eq("_id", id);
+        
+        var cliente = _clientesCollection.Find(filterId).FirstOrDefault() 
+            ?? throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
 
-        if (cliente == null)
-        {
-            throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
-        }
-
-        return new Extrato(
-            new Saldo(
-                cliente.Saldo, 
-                DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
-                cliente.Limite
-            ),
-            ["ultima transacao"]
-        );
+        return Task.FromResult(
+            new Extrato(
+                new Saldo(
+                    cliente.Saldo, 
+                    DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
+                    cliente.Limite
+                ),
+                ["ultima transacao"]
+        ));
     }
 
 }
