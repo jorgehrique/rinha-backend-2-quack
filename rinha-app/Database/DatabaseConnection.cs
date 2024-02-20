@@ -10,9 +10,8 @@ public class DatabaseConnection : IDatabaseConnection
         // nao se faz isso em projeto real kk
         var settings = MongoClientSettings.FromConnectionString("mongodb://user:pass@mongo:27017");
 
-        // settings.WriteConcern = WriteConcern.Unacknowledged;
-        // settings.MaxConnectionPoolSize = 50;
-        // settings.MinConnectionPoolSize = 25;
+        // prerigo!
+        settings.WriteConcern = WriteConcern.Unacknowledged;
 
         _clientesCollection = new MongoClient(settings)
             .GetDatabase("database")
