@@ -3,12 +3,13 @@ using MongoDB.Driver;
 public class DatabaseConnection : IDatabaseConnection
 {
     private readonly IMongoCollection<Cliente> _clientesCollection;
+    private readonly IMongoCollection<Transacao> _transacaoCollection;
 
     public DatabaseConnection()
     {
         // nao se faz isso em projeto real kk
-        var settings = MongoClientSettings.FromConnectionString("mongodb://user:pass@mongo:27017"); 
-        
+        var settings = MongoClientSettings.FromConnectionString("mongodb://user:pass@mongo:27017");
+
         // settings.WriteConcern = WriteConcern.Unacknowledged;
         // settings.MaxConnectionPoolSize = 50;
         // settings.MinConnectionPoolSize = 25;
@@ -16,9 +17,13 @@ public class DatabaseConnection : IDatabaseConnection
         _clientesCollection = new MongoClient(settings)
             .GetDatabase("database")
             .GetCollection<Cliente>("clientes");
+
+        _transacaoCollection = new MongoClient(settings)
+            .GetDatabase("database")
+            .GetCollection<Transacao>("transacoes");
     }
 
-    public Task<TransacaoSaldo> ExecutarTransacao(int id, Transacao transacao)
+    public Task<TransacaoSaldo> ExecutarTransacao(int id, TransacaoBody transacao)
     {
         var filterId = Builders<Cliente>.Filter.Eq("_id", id);
         long count = _clientesCollection.CountDocuments(filterId);
@@ -45,6 +50,7 @@ public class DatabaseConnection : IDatabaseConnection
 
         if (updated != null)
         {
+            SalvarTransacao(id, transacao);
             return Task.FromResult(new TransacaoSaldo(updated.Saldo, updated.Limite));
         }
         else
@@ -53,22 +59,48 @@ public class DatabaseConnection : IDatabaseConnection
         }
     }
 
-    public Task<Extrato> GetExtrato(int id)
+    public async Task<Extrato> GetExtrato(int id)
     {
         var filterId = Builders<Cliente>.Filter.Eq("_id", id);
-        
-        var cliente = _clientesCollection.Find(filterId).FirstOrDefault() 
+
+        var cliente = _clientesCollection
+            .Find(filterId)
+            .FirstOrDefault()
             ?? throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
 
-        return Task.FromResult(
+        var filterTransacao = Builders<Transacao>.Filter.Eq("cliente_id", id);
+
+        var ultimasTransacoes = await _transacaoCollection
+            .Find(filterTransacao)
+            .Limit(10)
+            .SortByDescending(t => t.Realizada_em)
+            .ToListAsync();
+
+        return await Task.FromResult(
             new Extrato(
                 new Saldo(
-                    cliente.Saldo, 
+                    cliente.Saldo,
                     DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
                     cliente.Limite
                 ),
-                ["ultima transacao"]
-        ));
+                ultimasTransacoes.ToList()
+            )
+        );
+    }
+
+    private async void SalvarTransacao(int id, TransacaoBody body)
+    {
+        await Task.Run(() =>
+        {
+            Transacao t = new Transacao(
+                id,
+                body.valor,
+                body.tipo,
+                body.descricao
+            );
+
+            _transacaoCollection.InsertOne(t);
+        });
     }
 
 }

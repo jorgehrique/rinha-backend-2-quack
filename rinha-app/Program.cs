@@ -4,7 +4,7 @@ builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>();
 
 var app = builder.Build();
 
-app.MapPost("/clientes/{id}/transacoes", async (int id, Transacao transacao, IDatabaseConnection databaseConnection) =>
+app.MapPost("/clientes/{id}/transacoes", async (int id, TransacaoBody transacao, IDatabaseConnection databaseConnection) =>
 {
     if (!IsTransacaoValid(transacao))
     {
@@ -41,7 +41,7 @@ app.MapGet("/clientes/{id}/extrato", async (int id, IDatabaseConnection database
 
 app.Run();
 
-static bool IsTransacaoValid(Transacao transacao)
+static bool IsTransacaoValid(TransacaoBody transacao)
 {
     return transacao.valor > 0
         && transacao.descricao != null && transacao.descricao.Length >= 1 && transacao.descricao.Length <= 10

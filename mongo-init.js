@@ -3,6 +3,15 @@ var database = connection.getDB("database");
 
 database.createCollection("clientes");
 
+database.createCollection("transacoes");
+
+database.transacoes.createIndex(
+  {
+    "cliente_id": 1,
+    "realizada_em": -1
+  }
+);
+
 database.clientes.insertMany([
     {
       "_id": 1,
