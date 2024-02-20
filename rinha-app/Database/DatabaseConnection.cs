@@ -2,30 +2,22 @@ using MongoDB.Driver;
 
 public class DatabaseConnection : IDatabaseConnection
 {
-    private readonly IMongoCollection<Cliente> _clientesCollection;
-    private readonly IMongoCollection<Transacao> _transacaoCollection;
+    private readonly IMongoClient _mongoClient;
 
     public DatabaseConnection()
     {
         // nao se faz isso em projeto real kk
-        var settings = MongoClientSettings.FromConnectionString("mongodb://user:pass@mongo:27017");
-
-        // prerigo!
-        settings.WriteConcern = WriteConcern.Unacknowledged;
-
-        _clientesCollection = new MongoClient(settings)
-            .GetDatabase("database")
-            .GetCollection<Cliente>("clientes");
-
-        _transacaoCollection = new MongoClient(settings)
-            .GetDatabase("database")
-            .GetCollection<Transacao>("transacoes");
+        var settings = MongoClientSettings.FromConnectionString("mongodb://user:pass@mongo:27017");        
+        settings.WriteConcern = WriteConcern.Unacknowledged; // prerigo!
+        _mongoClient = new MongoClient(settings);
     }
 
     public Task<TransacaoSaldo> ExecutarTransacao(int id, TransacaoBody transacao)
     {
         var filterId = Builders<Cliente>.Filter.Eq("_id", id);
-        long count = _clientesCollection.CountDocuments(filterId);
+        long count = _mongoClient.GetDatabase("database")
+            .GetCollection<Cliente>("clientes")
+            .CountDocuments(filterId);
 
         if (count < 0)
         {
@@ -38,13 +30,17 @@ public class DatabaseConnection : IDatabaseConnection
         if (transacao.tipo.Equals('c'))
         {
             var update = Builders<Cliente>.Update.Inc(c => c.Saldo, transacao.valor);
-            updated = _clientesCollection.FindOneAndUpdate(filterId, update, updateOptions);
+            updated = _mongoClient.GetDatabase("database")
+                .GetCollection<Cliente>("clientes")
+                .FindOneAndUpdate(filterId, update, updateOptions);
         }
         else
         {
             var filterDebito = filterId & Builders<Cliente>.Filter.Where(c => c.Saldo + c.Limite >= transacao.valor);
             var update = Builders<Cliente>.Update.Inc(c => c.Saldo, -transacao.valor);
-            updated = _clientesCollection.FindOneAndUpdate(filterDebito, update, updateOptions);
+            updated = _mongoClient.GetDatabase("database")
+                .GetCollection<Cliente>("clientes")
+                .FindOneAndUpdate(filterDebito, update, updateOptions);
         }
 
         if (updated != null)
@@ -62,14 +58,16 @@ public class DatabaseConnection : IDatabaseConnection
     {
         var filterId = Builders<Cliente>.Filter.Eq("_id", id);
 
-        var cliente = _clientesCollection
+        var cliente = _mongoClient.GetDatabase("database")
+            .GetCollection<Cliente>("clientes")
             .Find(filterId)
             .FirstOrDefault()
             ?? throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
 
         var filterTransacao = Builders<Transacao>.Filter.Eq("cliente_id", id);
 
-        var ultimasTransacoes = await _transacaoCollection
+        var ultimasTransacoes = await _mongoClient.GetDatabase("database")
+            .GetCollection<Transacao>("transacoes")
             .Find(filterTransacao)
             .Limit(10)
             .SortByDescending(t => t.Realizada_em)
@@ -98,7 +96,9 @@ public class DatabaseConnection : IDatabaseConnection
                 body.descricao
             );
 
-            _transacaoCollection.InsertOne(t);
+            _mongoClient.GetDatabase("database")
+                .GetCollection<Transacao>("transacoes")
+                .InsertOne(t);
         });
     }
 
