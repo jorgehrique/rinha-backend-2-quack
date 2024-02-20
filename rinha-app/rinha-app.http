@@ -1,13 +1,13 @@
 @rinha_app_HostAddress = http://localhost:9999
 
 ### Create a new transaction
-POST {{rinha_app_HostAddress}}/clientes/6/transacoes
+POST {{rinha_app_HostAddress}}/clientes/1/transacoes
 Content-Type: application/json
 
 {
-    "valor": 901,
-    "tipo": "d",
-    "descricao": "pix"
+    "valor": 1,
+    "tipo": "c",
+    "descricao": "aa"
 }
 
 ### GET Extrato

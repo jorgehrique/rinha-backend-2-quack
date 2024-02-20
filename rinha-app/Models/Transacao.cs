@@ -25,12 +25,12 @@ public class Transacao
     [BsonElement("realizada_em")]
     public string? Realizada_em { get; set; }
 
-    public Transacao(int ClienteId, int Valor, char Tipo, string Descricao)
+    public Transacao(int ClienteId, int? Valor, char? Tipo, string? Descricao)
     {
         this.ClienteId = ClienteId;
-        this.Valor = Valor;
-        this.Tipo = Tipo;
-        this.Descricao = Descricao;
+        this.Valor = Valor ?? 0;
+        this.Tipo = Tipo ?? 'c';
+        this.Descricao = Descricao ?? "";
         Realizada_em = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK");
     }
 

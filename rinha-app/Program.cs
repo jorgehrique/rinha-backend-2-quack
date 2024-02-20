@@ -8,7 +8,7 @@ app.MapPost("/clientes/{id}/transacoes", async (int id, TransacaoBody transacao,
 {
     if (!IsTransacaoValid(transacao))
     {
-        return Results.BadRequest();
+        return Results.UnprocessableEntity();
     }
 
     try
@@ -43,7 +43,7 @@ app.Run();
 
 static bool IsTransacaoValid(TransacaoBody transacao)
 {
-    return transacao.valor > 0
+    return transacao.valor != null && transacao.valor > 0
         && transacao.descricao != null && transacao.descricao.Length >= 1 && transacao.descricao.Length <= 10
-        && (transacao.tipo == 'c' || transacao.tipo == 'd');
+        && transacao.tipo != null && (transacao.tipo == 'c' || transacao.tipo == 'd');
 }

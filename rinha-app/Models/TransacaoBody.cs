@@ -1,1 +1,1 @@
-public record TransacaoBody(int valor, char tipo, string descricao);
+public record TransacaoBody(int? valor, char? tipo, string? descricao);
