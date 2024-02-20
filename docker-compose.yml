@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  api1: &api # API - Instância 01
+  api1: &api
     image: jorgehrique/rinha-backend-app-24-q1:latest
     container_name: api1
     depends_on:
@@ -9,9 +9,9 @@ services:
       resources:
         limits:
           cpus: '0.25'
-          memory: '100M'
+          memory: '115M'
 
-  api2: # API - Instância 02
+  api2:
     <<: *api 
     container_name: api2
 
@@ -28,7 +28,7 @@ services:
       resources:
         limits:
           cpus: '0.25'
-          memory: '50M'
+          memory: '15M'
 
   mongo: # Banco de dados
     image: mongo:7.0.5-jammy
@@ -42,5 +42,5 @@ services:
       resources:
         limits:
           cpus: '0.75'
-          memory: '250M'
+          memory: '265M'
 
