@@ -1,15 +1,15 @@
 version: '3.8'
 services:
   api1: &api
-    image: jorgehrique/rinha-backend-app-24-q1:latest
+    image: jorgehrique/rinha-backend-app-24-q1:1.0.0
     container_name: api1
     depends_on:
       - mongo
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: '115M'
+          cpus: '0.30'
+          memory: '100M'
 
   api2:
     <<: *api 
@@ -27,8 +27,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: '15M'
+          cpus: '0.10'
+          memory: '20M'
 
   mongo: # Banco de dados
     image: mongo:7.0.5-jammy
@@ -41,6 +41,6 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-          memory: '265M'
+          cpus: '0.80'
+          memory: '280M'
 
