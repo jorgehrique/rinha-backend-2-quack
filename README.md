@@ -17,7 +17,6 @@ base url: localhost:9999<br>
 
 resultado que tive (na minha máquina funciona)<br>
 
----- Global Information --------------------------------------------------------<br>
 > request count                                      61503 (OK=61503  KO=0     )<br>
 > min response time                                      1 (OK=1      KO=-     )<br>
 > max response time                                    751 (OK=751    KO=-     )<br>
@@ -28,7 +27,6 @@ resultado que tive (na minha máquina funciona)<br>
 > response time 95th percentile                          4 (OK=4      KO=-     )<br>
 > response time 99th percentile                         74 (OK=74     KO=-     )<br>
 > mean requests/sec                               251.033 (OK=251.033 KO=-     )<br>
----- Response Time Distribution ------------------------------------------------<br>
 > t < 800 ms                                         61503 (100%)<br>
 > 800 ms <= t < 1200 ms                                  0 (  0%)<br>
 > t >= 1200 ms                                           0 (  0%)<br>
