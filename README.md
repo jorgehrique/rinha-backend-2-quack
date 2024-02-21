@@ -7,6 +7,8 @@ Utilizei nginx, c# e mongodb
 escolhi o c# pq precisava estudar pra usar no trabalho
 e o mongodb foi pra poder armazenar as ultimas 10 transacoes num nested array e economizar nas consultas de extrato
 
+* foi meu primeiro projeto c#, perdao csharperes pelas atrocidades cometidas no código
+
 Repo Rinha 2: https://github.com/zanfranceschi/rinha-de-backend-2024-q1
 
 Run:
