@@ -27,25 +27,35 @@ public class DatabaseConnection : IDatabaseConnection
         var updateOptions = new FindOneAndUpdateOptions<Cliente> { ReturnDocument = ReturnDocument.After };
         Cliente? updated;
 
+        Transacao t = new Transacao(transacao);
+
+        var sortUltimasTransacoes = Builders<Transacao>.Sort.Descending("realizada_em");
+
+        // pulo do gato
+        var updateTransacoes = Builders<Cliente>.Update
+            .PushEach(c => c.Ultimas_transacoes, new List<Transacao>() { t }, 10, 1, sortUltimasTransacoes);
+
         if (transacao.tipo.Equals('c'))
         {
-            var update = Builders<Cliente>.Update.Inc(c => c.Saldo, transacao.valor);
+            var updateSaldo = Builders<Cliente>.Update.Inc(c => c.Saldo, transacao.valor);
+            var updates = Builders<Cliente>.Update.Combine(updateSaldo, updateTransacoes);
             updated = _mongoClient.GetDatabase("database")
                 .GetCollection<Cliente>("clientes")
-                .FindOneAndUpdate(filterId, update, updateOptions);
+                .FindOneAndUpdate(filterId, updates, updateOptions);
         }
         else
         {
             var filterDebito = filterId & Builders<Cliente>.Filter.Where(c => c.Saldo + c.Limite >= transacao.valor);
-            var update = Builders<Cliente>.Update.Inc(c => c.Saldo, -transacao.valor);
+            var updateSaldo = Builders<Cliente>.Update.Inc(c => c.Saldo, -transacao.valor);
+            var updates = Builders<Cliente>.Update.Combine(updateSaldo, updateTransacoes);
+
             updated = _mongoClient.GetDatabase("database")
                 .GetCollection<Cliente>("clientes")
-                .FindOneAndUpdate(filterDebito, update, updateOptions);
+                .FindOneAndUpdate(filterDebito, updates, updateOptions);
         }
 
         if (updated != null)
         {
-            SalvarTransacao(id, transacao);
             return Task.FromResult(new TransacaoSaldo(updated.Saldo, updated.Limite));
         }
         else
@@ -64,15 +74,6 @@ public class DatabaseConnection : IDatabaseConnection
             .FirstOrDefault()
             ?? throw new ClienteNotFoundException("Cliente não encontrado: Id=" + id);
 
-        var filterTransacao = Builders<Transacao>.Filter.Eq("cliente_id", id);
-
-        var ultimasTransacoes = await _mongoClient.GetDatabase("database")
-            .GetCollection<Transacao>("transacoes")
-            .Find(filterTransacao)
-            .Limit(10)
-            .SortByDescending(t => t.Realizada_em)
-            .ToListAsync();
-
         return await Task.FromResult(
             new Extrato(
                 new Saldo(
@@ -80,26 +81,9 @@ public class DatabaseConnection : IDatabaseConnection
                     DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
                     cliente.Limite
                 ),
-                ultimasTransacoes.ToList()
+                cliente.Ultimas_transacoes
             )
         );
-    }
-
-    private async void SalvarTransacao(int id, TransacaoBody body)
-    {
-        await Task.Run(() =>
-        {
-            Transacao t = new Transacao(
-                id,
-                body.valor,
-                body.tipo,
-                body.descricao
-            );
-
-            _mongoClient.GetDatabase("database")
-                .GetCollection<Transacao>("transacoes")
-                .InsertOne(t);
-        });
     }
 
 }

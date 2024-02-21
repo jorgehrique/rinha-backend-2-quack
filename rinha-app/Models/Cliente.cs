@@ -12,4 +12,7 @@ public class Cliente
 
     [BsonElement("saldo")]
     public int Saldo { get; set; }
+
+    [BsonElement("ultimas_transacoes")]
+    public List<Transacao>? Ultimas_transacoes;
 }
